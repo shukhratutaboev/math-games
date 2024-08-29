@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MathGames",
   "resources": {
-    "hash": "sha256-U7HzvxN5J3mFiZRAo/sl/b0luhqzqxrKWph+y+FvDhw=",
+    "hash": "sha256-UtNRVU5Odbdu2cl9a23Y3YzaqpBah/mO9jNq+x+vNk0=",
     "jsModuleNative": {
       "dotnet.native.8.0.8.746giovk6l.js": "sha256-juC5sA7gHTLXFEhAKgdM2/RavswpwCtDfjYGsAz2FXg="
     },
@@ -17,7 +17,7 @@
       "icudt_no_CJK.dat": "sha256-L7sV7NEYP37/Qr2FPCePo5cJqRgTXRwGHuwF5Q+0Nfs="
     },
     "assembly": {
-      "MathGames.wasm": "sha256-EQkx88vuSaDbW77Ou1VkWhNW3RdoImofKCFWyU1ODu4=",
+      "MathGames.wasm": "sha256-2rS3g4iLW2ATfaSNS9L6vleptjdkqVEkLfvTroFJZFQ=",
       "Microsoft.AspNetCore.Components.wasm": "sha256-c7OEvZabQQi4+XOQdD7qFTAvBd/RNP+SlhGCno3ZeAM=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-ivj7kxN8rrhTm1UV0H7dhsOewu6rhATFU2ZAG/YKLvA=",
       "Microsoft.AspNetCore.Components.WebAssembly.wasm": "sha256-Ws5szf6fWPAXna+XyWsAhavx+WDFcA/91DQ7iPRPCMs=",
