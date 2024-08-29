@@ -9,9 +9,6 @@ jobs:
   deploy-to-github-pages:
     # use ubuntu-latest image to run steps on
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./MathGames
     steps:
     # uses GitHub's checkout action to checkout code form the master branch
     - uses: actions/checkout@v2
@@ -24,7 +21,7 @@ jobs:
 
     # publishes Blazor project to the release-folder
     - name: Publish .NET Core Project
-      run: dotnet publish MathGames.csproj -c Release -o release --nologo
+      run: dotnet publish MathGames/MathGames.csproj -c Release -o release --nologo
     
     # changes the base-tag in index.html from '/' to 'BlazorGitHubPagesDemo' to match GitHub Pages repository subdirectory
     - name: Change base-tag in index.html from / to MathGames
@@ -43,4 +40,4 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages
-        FOLDER: MathGames/release/wwwroot
+        FOLDER: release/wwwroot
