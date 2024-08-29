@@ -8,7 +8,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<GameOfLifeBase>((ctx) => new GameOfLifeBase(35, 35));
-builder.Services.AddScoped<LangtonsAntBase>((ctx) => new LangtonsAntBase(50, 50));
+builder.Services.AddScoped<LangtonsAntBase>((ctx) => new LangtonsAntBase(40, 40));
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
