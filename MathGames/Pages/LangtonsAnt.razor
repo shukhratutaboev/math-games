@@ -1,0 +1,122 @@
+@page "/langtonsant"
+@using global::MathGames.Games
+@inject LangtonsAntBase Ant
+
+<h3>Langton's Ant</h3>
+
+@if (Ant is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        @if (Ant.Paused)
+        {
+            <button class="bi bi-play-fill" @onclick="Ant.Play"></button>
+        }
+        else
+        {
+            <button class="bi bi-pause-fill" @onclick="Ant.Pause"></button>
+        }
+        <button class="bi bi-arrow-right" @onclick="Ant.Next"></button>
+        <button class="bi bi-arrow-counterclockwise" @onclick="Ant.Reset"></button>
+    </div>
+
+    <div>
+        <label for="refreshRate">Refresh Rate: @((double)RefreshRate/1000) s</label>
+        <input type="range" id="refreshRate" min="1" max="2000" step="1" @bind="RefreshRate" />
+    </div>
+
+    <div>
+        <p>Steps: @Ant.Steps</p>
+    </div>
+
+    <div class="grid">
+        @for (int row = 0; row < Ant.SizeX; row++)
+        {
+            @for (int col = 0; col < Ant.SizeY; col++)
+            {
+                var x = row;
+                var y = col;
+                if (Ant.AntX == x && Ant.AntY == y)
+                {
+                    var direction = Ant.AntDirection switch
+                    {
+                        0 => "ant-up",
+                        1 => "ant-right",
+                        2 => "ant-down",
+                        _ => "ant-left"
+                    };
+                    <div class="cell @direction @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                }
+                else
+                {
+                    <div class="cell @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                }
+            }
+        }
+    </div>
+}
+<style>
+    .grid {
+        display: grid;
+        grid-template-rows: repeat(@Ant.SizeX, 10px);
+        grid-template-columns: repeat(@Ant.SizeY, 10px);
+    }
+    .cell {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+    }
+    .black {
+        background-color: black;
+    }
+    .white {
+        background-color: white;
+    }
+    .ant-up {
+        border-width: 0 5px 10px 5px;
+        border-color: transparent transparent red transparent;
+    }
+
+    .ant-right {
+        border-width: 5px 0 5px 10px;
+        border-color: transparent transparent transparent red;
+    }
+
+    .ant-down {
+        border-width: 10px 5px 0 5px;
+        border-color: red transparent transparent transparent;
+    }
+
+    .ant-left {
+        border-width: 5px 10px 5px 0;
+        border-color: transparent red transparent transparent;
+    }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Ant.OnChangeAsync += Refresh;
+    }
+
+    private async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private int _refreshRate = 100;
+
+    public int RefreshRate
+    {
+        get => _refreshRate;
+        set
+        {
+            _refreshRate = value;
+            Ant.SetRefreshRate(_refreshRate);
+        }
+    }
+}

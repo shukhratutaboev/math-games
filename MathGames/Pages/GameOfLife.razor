@@ -1,0 +1,86 @@
+@page "/gameoflife"
+@using global::MathGames.Games
+@inject GameOfLifeBase GoL
+
+<h3>Game of Life</h3>
+
+@if (GoL is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        @if (GoL.Paused)
+        {
+            <button class="bi bi-play-fill" @onclick="GoL.Play"></button>
+        }
+        else
+        {
+            <button class="bi bi-pause-fill" @onclick="GoL.Pause"></button>
+        }
+        <button class="bi bi-arrow-right" @onclick="GoL.Next"></button>
+        <button class="bi bi-shuffle" @onclick="GoL.Randomize"></button>
+        <button class="bi bi-arrow-counterclockwise" @onclick="GoL.Reset"></button>
+    </div>
+
+    <div>
+        <label for="refreshRate">Refresh Rate: @((double)RefreshRate/1000) s</label>
+        <input type="range" id="refreshRate" min="100" max="5000" step="100" @bind="RefreshRate" />
+    </div>
+
+    <div class="grid">
+        @for (int row = 0; row < GoL.SizeX; row++)
+        {
+            @for (int col = 0; col < GoL.SizeY; col++)
+            {
+                var x = row;
+                var y = col;
+                <div @onclick="() => GoL.ToggleCell(x, y)" class="cell @(GoL.GetCell(x, y) ? "alive" : "dead")"></div>
+            }
+        }
+    </div>
+}
+<style>
+    .grid {
+        display: grid;
+        grid-template-rows: repeat(@GoL.SizeX, 15px);
+        grid-template-columns: repeat(@GoL.SizeY, 15px);
+    }
+    .cell {
+        width: 15px;
+        height: 15px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+    }
+    .alive {
+        background-color: black;
+    }
+    .dead {
+        background-color: white;
+    }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        GoL.OnChangeAsync += Refresh;
+    }
+
+    private async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private int _refreshRate = 500;
+
+    public int RefreshRate
+    {
+        get => _refreshRate;
+        set
+        {
+            _refreshRate = value;
+            GoL.SetRefreshRate(_refreshRate);
+        }
+    }
+}
