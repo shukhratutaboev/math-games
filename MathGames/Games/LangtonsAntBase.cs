@@ -71,6 +71,7 @@ public class LangtonsAntBase
         _antX = _sizeX / 2;
         _antY = _sizeY / 2;
         _antDirection = 0;
+        _steps = 0;
         NotifyStateChanged();
     }
 
