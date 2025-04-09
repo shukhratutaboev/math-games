@@ -48,8 +48,8 @@ else
 <style>
     .grid {
         display: grid;
-        grid-template-rows: repeat(@GoL.SizeX, 15px);
-        grid-template-columns: repeat(@GoL.SizeY, 15px);
+        grid-template-rows: repeat(@(GoL?.SizeX ?? 0), 15px);
+        grid-template-columns: repeat(@(GoL?.SizeY ?? 0), 15px);
     }
     .cell {
         width: 15px;

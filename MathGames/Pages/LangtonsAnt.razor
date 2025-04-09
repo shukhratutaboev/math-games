@@ -65,8 +65,8 @@ else
 <style>
     .grid {
         display: grid;
-        grid-template-rows: repeat(@Ant.SizeX, 10px);
-        grid-template-columns: repeat(@Ant.SizeY, 10px);
+        grid-template-rows: repeat(@(Ant?.SizeX ?? 0), 10px);
+        grid-template-columns: repeat(@(Ant?.SizeY ?? 0), 10px);
     }
     .cell {
         width: 10px;
