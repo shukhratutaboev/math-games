@@ -1,0 +1,225 @@
+@page "/maze"
+@using global::MathGames.Games
+@inject MazeBase MazeGen
+
+<MudText Typo="Typo.h4" Class="mb-2">Maze Generator & Solver</MudText>
+
+<MudExpansionPanels Class="mb-4">
+    <MudExpansionPanel Text="About Maze Generator & Solver">
+        <MudText Typo="Typo.body1" Class="mb-2">
+            This simulation allows you to generate mazes using different algorithms and solve them with
+            various pathfinding techniques.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            <strong>Generation Algorithms:</strong>
+            <ul>
+                <li><strong>Recursive Backtracking</strong> - Carves passages by visiting cells in a depth-first manner</li>
+                <li><strong>Kruskal's Algorithm</strong> - Creates a perfect maze by randomly joining disjoint sets of cells</li>
+                <li><strong>Eller's Algorithm</strong> - Builds the maze one row at a time, using sets to track connected cells</li>
+            </ul>
+            <strong>Solving Algorithms:</strong>
+            <ul>
+                <li><strong>Breadth-First Search</strong> - Explores all cells at the current depth before moving deeper</li>
+                <li><strong>Depth-First Search</strong> - Explores as far as possible along each branch before backtracking</li>
+                <li><strong>A* Search</strong> - Uses a heuristic to efficiently find the shortest path</li>
+            </ul>
+        </MudText>
+        <MudText Typo="Typo.body2">
+            Click "Generate Maze" to create a new maze, then "Solve Maze" to find a path from start to end.
+            You can also place custom start and end points by clicking on any path cell while holding Alt or Shift.
+        </MudText>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@if (MazeGen is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudPaper Class="pa-4 mb-4">
+                <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                    @if (MazeGen.Paused)
+                    {
+                        <MudButton OnClick="MazeGen.Play" StartIcon="@Icons.Material.Filled.PlayArrow">Play</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton OnClick="MazeGen.Pause" StartIcon="@Icons.Material.Filled.Pause">Pause</MudButton>
+                    }
+                    <MudButton OnClick="MazeGen.Next" StartIcon="@Icons.Material.Filled.SkipNext">Step</MudButton>
+                    <MudButton OnClick="MazeGen.StartGeneration" StartIcon="@Icons.Material.Filled.GridOn">Generate Maze</MudButton>
+                    <MudButton OnClick="MazeGen.StartSolving" StartIcon="@Icons.Material.Filled.Route">Solve Maze</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+
+            <MudPaper Class="pa-4 mb-4">
+                <div class="maze-grid">
+                    @for (int y = 0; y < MazeGen.SizeY; y++)
+                    {
+                        @for (int x = 0; x < MazeGen.SizeX; x++)
+                        {
+                            var cellX = x;
+                            var cellY = y;
+                            var cellType = MazeGen.GetCell(x, y);
+                            string cellClass = cellType switch
+                            {
+                                0 => "wall",
+                                1 => "path",
+                                2 => "visited-gen",
+                                3 => "visited-solve",
+                                4 => "solution",
+                                5 => "start",
+                                6 => "end",
+                                _ => "wall"
+                            };
+                            <div class="cell @cellClass" 
+                                 @onclick="(e) => CellClicked(e, cellX, cellY)" 
+                                 @onclick:preventDefault>
+                            </div>
+                        }
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6">Settings</MudText>
+                
+                <MudText Typo="Typo.subtitle1" Class="mt-3 mb-2">Refresh Rate: @((double)_refreshRate/1000) s</MudText>
+                <MudSlider Value="@_refreshRate" ValueChanged="@((int val) => UpdateRefreshRate(val))" Min="10" Max="1000" Step="10" />
+                
+                <MudDivider Class="my-3" />
+                
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Generation Algorithm:</MudText>
+                <MudSelect T="MazeBase.GenerationAlgorithm" Value="MazeGen.CurrentGenerationAlgorithm" ValueChanged="@((alg) => MazeGen.SetGenerationAlgorithm(alg))">
+                    <MudSelectItem Value="MazeBase.GenerationAlgorithm.RecursiveBacktracking">Recursive Backtracking</MudSelectItem>
+                    <MudSelectItem Value="MazeBase.GenerationAlgorithm.Kruskal">Kruskal's Algorithm</MudSelectItem>
+                    <MudSelectItem Value="MazeBase.GenerationAlgorithm.Eller">Eller's Algorithm</MudSelectItem>
+                </MudSelect>
+                
+                <MudText Typo="Typo.subtitle1" Class="mt-3 mb-2">Solving Algorithm:</MudText>
+                <MudSelect T="MazeBase.SolvingAlgorithm" Value="MazeGen.CurrentSolvingAlgorithm" ValueChanged="@((alg) => MazeGen.SetSolvingAlgorithm(alg))">
+                    <MudSelectItem Value="MazeBase.SolvingAlgorithm.BreadthFirstSearch">Breadth-First Search</MudSelectItem>
+                    <MudSelectItem Value="MazeBase.SolvingAlgorithm.DepthFirstSearch">Depth-First Search</MudSelectItem>
+                    <MudSelectItem Value="MazeBase.SolvingAlgorithm.AStar">A* Search</MudSelectItem>
+                </MudSelect>
+            </MudPaper>
+            
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6">Statistics</MudText>
+                <MudList T="string">
+                    <MudListItem T="string" Text="@($"Generation Steps: {MazeGen.StepsToGenerate}")"/>
+                    <MudListItem T="string" Text="@($"Solving Steps: {MazeGen.StepsToSolve}")"/>
+                    <MudListItem T="string" Text="@($"Solution Length: {MazeGen.SolutionLength}")"/>
+                </MudList>
+            </MudPaper>
+            
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6">Instructions</MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    <ul class="ml-4">
+                        <li>Click "Generate Maze" to create a new maze</li>
+                        <li>Click "Solve Maze" to find a path from start to end</li>
+                        <li>Hold Alt and click on a path to set start point</li>
+                        <li>Hold Shift and click on a path to set end point</li>
+                    </ul>
+                </MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+<style>
+    .maze-grid {
+        display: grid;
+        grid-template-rows: repeat(@(MazeGen?.SizeY ?? 0), minmax(10px, 1fr));
+        grid-template-columns: repeat(@(MazeGen?.SizeX ?? 0), minmax(10px, 1fr));
+        grid-gap: 0;
+        width: 100%;
+        aspect-ratio: @((MazeGen?.SizeX ?? 1) / (MazeGen?.SizeY ?? 1));
+        max-height: 70vh;
+    }
+    
+    .cell {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    .wall {
+        background-color: var(--mud-palette-primary-darken);
+    }
+    
+    .path {
+        background-color: white;
+    }
+    
+    .visited-gen {
+        background-color: var(--mud-palette-primary-lighten);
+    }
+    
+    .visited-solve {
+        background-color: var(--mud-palette-tertiary);
+        opacity: 0.5;
+    }
+    
+    .solution {
+        background-color: var(--mud-palette-tertiary);
+    }
+    
+    .start {
+        background-color: var(--mud-palette-success);
+    }
+    
+    .end {
+        background-color: var(--mud-palette-error);
+    }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (MazeGen != null)
+        {
+            MazeGen.OnChangeAsync += Refresh;
+        }
+    }
+
+    private async Task Refresh()
+    {
+        if (MazeGen != null)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private int _refreshRate = 100;
+
+    private void UpdateRefreshRate(int value)
+    {
+        _refreshRate = value;
+        if (MazeGen != null)
+        {
+            MazeGen.SetRefreshRate(_refreshRate);
+        }
+    }
+    
+    private void CellClicked(MouseEventArgs e, int x, int y)
+    {
+        if (MazeGen != null)
+        {
+            if (e.AltKey)
+            {
+                MazeGen.SetStartPoint(x, y);
+            }
+            else if (e.ShiftKey)
+            {
+                MazeGen.SetEndPoint(x, y);
+            }
+        }
+    }
+}
