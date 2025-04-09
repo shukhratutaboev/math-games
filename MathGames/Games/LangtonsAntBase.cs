@@ -8,18 +8,40 @@ public class LangtonsAntBase
     private readonly int _sizeY;
     private int _refreshRate = 100;
     private bool[,] _cells;
-    private int _antX;
-    private int _antY;
-    private int _antDirection; // 0 = up, 1 = right, 2 = down, 3 = left
     private int _steps;
+
+    // List to store multiple ants
+    private List<Ant> _ants = new List<Ant>();
+
+    // Inner class to represent an individual ant
+    public class Ant
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Direction { get; set; } // 0 = up, 1 = right, 2 = down, 3 = left
+        public bool IsActive { get; set; } = true;
+
+        public Ant(int x, int y, int direction)
+        {
+            X = x;
+            Y = y;
+            Direction = direction;
+        }
+    }
 
     public event Func<Task>? OnChangeAsync;
     public int SizeX => _sizeX;
     public int SizeY => _sizeY;
-    public int AntX => _antX;
-    public int AntY => _antY;
-    public int AntDirection => _antDirection;
+
+    // Update properties to get values from the most recently added active ant
+    public int AntX => _ants.LastOrDefault(a => a.IsActive)?.X ?? _sizeX / 2;
+    public int AntY => _ants.LastOrDefault(a => a.IsActive)?.Y ?? _sizeY / 2;
+    public int AntDirection => _ants.LastOrDefault(a => a.IsActive)?.Direction ?? 0;
+
     public int Steps => _steps;
+
+    // Add a public accessor for the ants collection
+    public IReadOnlyList<Ant> Ants => _ants.AsReadOnly();
 
     public LangtonsAntBase(int sizeX, int sizeY)
     {
@@ -27,9 +49,9 @@ public class LangtonsAntBase
         _sizeY = sizeY;
         _cells = new bool[sizeX, sizeY];
         Paused = true;
-        _antX = sizeX / 2;
-        _antY = sizeY / 2;
-        _antDirection = 0;
+
+        // Initialize with one ant in the center
+        _ants.Add(new Ant(sizeX / 2, sizeY / 2, 0));
         _steps = 0;
 
         Task.Run(async () =>
@@ -68,9 +90,11 @@ public class LangtonsAntBase
     {
         Paused = true;
         _cells = new bool[_sizeX, _sizeY];
-        _antX = _sizeX / 2;
-        _antY = _sizeY / 2;
-        _antDirection = 0;
+
+        // Reset to just one ant in the center
+        _ants.Clear();
+        _ants.Add(new Ant(_sizeX / 2, _sizeY / 2, 0));
+
         _steps = 0;
         NotifyStateChanged();
     }
@@ -85,40 +109,78 @@ public class LangtonsAntBase
         return _cells[x, y];
     }
 
+    public void CreateAntAt(int x, int y)
+    {
+        // Make sure the coordinates are within bounds
+        if (x >= 0 && x < _sizeX && y >= 0 && y < _sizeY)
+        {
+            // Create a new ant at the clicked position
+            // Direction is randomly chosen
+            int direction = new Random().Next(4);
+            _ants.Add(new Ant(x, y, direction));
+
+            // Notify that the state has changed
+            NotifyStateChanged();
+        }
+    }
+
     private void Step()
     {
         _steps++;
-        if (_antX < 0 || _antX >= _sizeX || _antY < 0 || _antY >= _sizeY)
+
+        // Process each ant in the list
+        for (int i = 0; i < _ants.Count; i++)
+        {
+            Ant ant = _ants[i];
+
+            // Skip inactive ants
+            if (!ant.IsActive) continue;
+
+            // Check bounds
+            if (ant.X < 0 || ant.X >= _sizeX || ant.Y < 0 || ant.Y >= _sizeY)
+            {
+                ant.IsActive = false;
+                continue;
+            }
+
+            // Apply Langton's Ant rules
+            if (!_cells[ant.X, ant.Y])
+            {
+                ant.Direction = (ant.Direction + 1) % 4;
+            }
+            else
+            {
+                ant.Direction = (ant.Direction + 3) % 4;
+            }
+
+            // Flip the cell color
+            _cells[ant.X, ant.Y] = !_cells[ant.X, ant.Y];
+
+            // Move the ant
+            switch (ant.Direction)
+            {
+                case 0:
+                    ant.X--;
+                    break;
+                case 1:
+                    ant.Y++;
+                    break;
+                case 2:
+                    ant.X++;
+                    break;
+                case 3:
+                    ant.Y--;
+                    break;
+            }
+        }
+
+        // Remove inactive ants
+        _ants.RemoveAll(a => !a.IsActive);
+
+        // If all ants are gone, pause the simulation
+        if (!_ants.Any())
         {
             Paused = true;
-            return;
-        }
-
-        if (!_cells[_antX, _antY])
-        {
-            _antDirection = (_antDirection + 1) % 4;
-        }
-        else
-        {
-            _antDirection = (_antDirection + 3) % 4;
-        }
-
-        _cells[_antX, _antY] = !_cells[_antX, _antY];
-
-        switch (_antDirection)
-        {
-            case 0:
-                _antX--;
-                break;
-            case 1:
-                _antY++;
-                break;
-            case 2:
-                _antX++;
-                break;
-            case 3:
-                _antY--;
-                break;
         }
     }
 }

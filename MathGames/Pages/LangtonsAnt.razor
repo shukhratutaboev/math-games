@@ -62,20 +62,32 @@ else
                 {
                     var x = row;
                     var y = col;
-                    if (Ant.AntX == x && Ant.AntY == y)
+                    bool hasAnt = false;
+                    string direction = "";
+                    
+                    @foreach (var ant in Ant.Ants)
                     {
-                        var direction = Ant.AntDirection switch
+                        if (ant.X == x && ant.Y == y && ant.IsActive)
                         {
-                            0 => "ant-up",
-                            1 => "ant-right",
-                            2 => "ant-down",
-                            _ => "ant-left"
-                        };
-                        <div class="cell @direction @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                            hasAnt = true;
+                            direction = ant.Direction switch
+                            {
+                                0 => "ant-up",
+                                1 => "ant-right",
+                                2 => "ant-down",
+                                _ => "ant-left"
+                            };
+                            break;
+                        }
+                    }
+                    
+                    if (hasAnt)
+                    {
+                        <div class="cell @direction @(Ant.GetCell(x, y) ? "black" : "white")" @onclick="() => CreateAntAt(x, y)"></div>
                     }
                     else
                     {
-                        <div class="cell @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                        <div class="cell @(Ant.GetCell(x, y) ? "black" : "white")" @onclick="() => CreateAntAt(x, y)"></div>
                     }
                 }
             }
@@ -142,6 +154,14 @@ else
         if (Ant != null)
         {
             Ant.SetRefreshRate(_refreshRate);
+        }
+    }
+
+    private void CreateAntAt(int x, int y)
+    {
+        if (Ant != null)
+        {
+            Ant.CreateAntAt(x, y);
         }
     }
 }
