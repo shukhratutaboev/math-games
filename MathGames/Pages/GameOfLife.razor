@@ -2,7 +2,28 @@
 @using global::MathGames.Games
 @inject GameOfLifeBase GoL
 
-<MudText Typo="Typo.h5" Class="mb-4">Game of Life</MudText>
+<MudText Typo="Typo.h4" Class="mb-2">Conway's Game of Life</MudText>
+
+<MudExpansionPanels Class="mb-4">
+    <MudExpansionPanel Text="About Game of Life">
+        <MudText Typo="Typo.body1" Class="mb-2">
+            Conway's Game of Life is a cellular automaton devised by mathematician John Conway in 1970. 
+            It consists of a grid of cells which, based on a few mathematical rules, can live, die, or multiply.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            <strong>Rules:</strong>
+            <ul>
+                <li>Any live cell with fewer than two live neighbors dies (underpopulation)</li>
+                <li>Any live cell with two or three live neighbors lives on</li>
+                <li>Any live cell with more than three live neighbors dies (overpopulation)</li>
+                <li>Any dead cell with exactly three live neighbors becomes alive (reproduction)</li>
+            </ul>
+        </MudText>
+        <MudText Typo="Typo.body2">
+            Click on cells to toggle them between alive and dead. Use the controls to start/pause the simulation.
+        </MudText>
+    </MudExpansionPanel>
+</MudExpansionPanels>
 
 @if (GoL is null)
 {

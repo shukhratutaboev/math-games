@@ -1,7 +1,46 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Math Games</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">Welcome to Math Games</MudText>
+    
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h5" Class="mb-2">About This Project</MudText>
+        <MudText Typo="Typo.body1">
+            This application showcases mathematical and computational simulations that demonstrate 
+            emergent behavior from simple rules. These cellular automata illustrate how complex 
+            patterns can arise from basic interactions.
+        </MudText>
+    </MudPaper>
+    
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2" Class="h-100">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5">Conway's Game of Life</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>A cellular automaton where cells live or die based on their neighbors, creating complex patterns.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/gameoflife">Try It</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2" Class="h-100">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5">Langton's Ant</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>A simple cellular automaton that follows basic rules yet creates surprisingly complex behaviors.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/langtonsant">Try It</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

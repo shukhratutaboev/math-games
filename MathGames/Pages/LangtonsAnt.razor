@@ -2,7 +2,27 @@
 @using global::MathGames.Games
 @inject LangtonsAntBase Ant
 
-<MudText Typo="Typo.h4" Class="mb-4">Langton's Ant</MudText>
+<MudText Typo="Typo.h4" Class="mb-2">Langton's Ant</MudText>
+
+<MudExpansionPanels Class="mb-4">
+    <MudExpansionPanel Text="About Langton's Ant">
+        <MudText Typo="Typo.body1" Class="mb-2">
+            Langton's Ant is a cellular automaton invented by Chris Langton in 1986. It operates on a 
+            grid of cells, each of which can be either black or white, and follows simple rules that lead to 
+            complex emergent behavior.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            <strong>Rules:</strong>
+            <ul>
+                <li>If the ant is on a white cell, it turns right 90 degrees, flips the color of the cell to black, and moves forward</li>
+                <li>If the ant is on a black cell, it turns left 90 degrees, flips the color of the cell to white, and moves forward</li>
+            </ul>
+        </MudText>
+        <MudText Typo="Typo.body2">
+            Despite its simple rules, after over 10,000 steps the ant will create a repeating "highway" pattern.
+        </MudText>
+    </MudExpansionPanel>
+</MudExpansionPanels>
 
 @if (Ant is null)
 {
