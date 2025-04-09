@@ -2,44 +2,48 @@
 @using global::MathGames.Games
 @inject GameOfLifeBase GoL
 
-<h3>Game of Life</h3>
+<MudText Typo="Typo.h5" Class="mb-4">Game of Life</MudText>
 
 @if (GoL is null)
 {
-    <p>Loading...</p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <div>
-        @if (GoL.Paused)
-        {
-            <button class="bi bi-play-fill" @onclick="GoL.Play"></button>
-        }
-        else
-        {
-            <button class="bi bi-pause-fill" @onclick="GoL.Pause"></button>
-        }
-        <button class="bi bi-arrow-right" @onclick="GoL.Next"></button>
-        <button class="bi bi-shuffle" @onclick="GoL.Randomize"></button>
-        <button class="bi bi-arrow-counterclockwise" @onclick="GoL.Reset"></button>
-    </div>
-
-    <div>
-        <label for="refreshRate">Refresh Rate: @((double)RefreshRate/1000) s</label>
-        <input type="range" id="refreshRate" min="100" max="5000" step="100" @bind="RefreshRate" />
-    </div>
-
-    <div class="grid">
-        @for (int row = 0; row < GoL.SizeX; row++)
-        {
-            @for (int col = 0; col < GoL.SizeY; col++)
+    <MudPaper Class="pa-4 mb-4">
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            @if (GoL.Paused)
             {
-                var x = row;
-                var y = col;
-                <div @onclick="() => GoL.ToggleCell(x, y)" class="cell @(GoL.GetCell(x, y) ? "alive" : "dead")"></div>
+                <MudButton OnClick="GoL.Play" StartIcon="@Icons.Material.Filled.PlayArrow">Play</MudButton>
             }
-        }
-    </div>
+            else
+            {
+                <MudButton OnClick="GoL.Pause" StartIcon="@Icons.Material.Filled.Pause">Pause</MudButton>
+            }
+            <MudButton OnClick="GoL.Next" StartIcon="@Icons.Material.Filled.SkipNext">Step</MudButton>
+            <MudButton OnClick="GoL.Randomize" StartIcon="@Icons.Material.Filled.Shuffle">Randomize</MudButton>
+            <MudButton OnClick="GoL.Reset" StartIcon="@Icons.Material.Filled.Refresh">Reset</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.subtitle1">Refresh Rate: @((double)_refreshRate/1000) s</MudText>
+        <MudSlider Value="@_refreshRate" ValueChanged="@((int val) => UpdateRefreshRate(val))" Min="100" Max="5000" Step="100" />
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+        <div class="grid">
+            @for (int row = 0; row < GoL.SizeX; row++)
+            {
+                @for (int col = 0; col < GoL.SizeY; col++)
+                {
+                    var x = row;
+                    var y = col;
+                    <div @onclick="() => GoL.ToggleCell(x, y)" class="cell @(GoL.GetCell(x, y) ? "alive" : "dead")"></div>
+                }
+            }
+        </div>
+    </MudPaper>
 }
 <style>
     .grid {
@@ -54,7 +58,7 @@ else
         cursor: pointer;
     }
     .alive {
-        background-color: black;
+        background-color: var(--mud-palette-primary);
     }
     .dead {
         background-color: white;
@@ -64,22 +68,27 @@ else
 @code {
     protected override void OnInitialized()
     {
-        GoL.OnChangeAsync += Refresh;
+        if (GoL != null)
+        {
+            GoL.OnChangeAsync += Refresh;
+        }
     }
 
     private async Task Refresh()
     {
-        await InvokeAsync(StateHasChanged);
+        if (GoL != null)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private int _refreshRate = 500;
 
-    public int RefreshRate
+    private void UpdateRefreshRate(int value)
     {
-        get => _refreshRate;
-        set
+        _refreshRate = value;
+        if (GoL != null)
         {
-            _refreshRate = value;
             GoL.SetRefreshRate(_refreshRate);
         }
     }

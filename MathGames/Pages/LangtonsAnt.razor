@@ -2,61 +2,65 @@
 @using global::MathGames.Games
 @inject LangtonsAntBase Ant
 
-<h3>Langton's Ant</h3>
+<MudText Typo="Typo.h4" Class="mb-4">Langton's Ant</MudText>
 
 @if (Ant is null)
 {
-    <p>Loading...</p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <div>
-        @if (Ant.Paused)
-        {
-            <button class="bi bi-play-fill" @onclick="Ant.Play"></button>
-        }
-        else
-        {
-            <button class="bi bi-pause-fill" @onclick="Ant.Pause"></button>
-        }
-        <button class="bi bi-arrow-right" @onclick="Ant.Next"></button>
-        <button class="bi bi-arrow-counterclockwise" @onclick="Ant.Reset"></button>
-    </div>
-
-    <div>
-        <label for="refreshRate">Refresh Rate: @((double)RefreshRate/1000) s</label>
-        <input type="range" id="refreshRate" min="1" max="2000" step="1" @bind="RefreshRate" />
-    </div>
-
-    <div>
-        <p>Steps: @Ant.Steps</p>
-    </div>
-
-    <div class="grid">
-        @for (int row = 0; row < Ant.SizeX; row++)
-        {
-            @for (int col = 0; col < Ant.SizeY; col++)
+    <MudPaper Class="pa-4 mb-4">
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            @if (Ant.Paused)
             {
-                var x = row;
-                var y = col;
-                if (Ant.AntX == x && Ant.AntY == y)
+                <MudButton OnClick="Ant.Play" StartIcon="@Icons.Material.Filled.PlayArrow">Play</MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="Ant.Pause" StartIcon="@Icons.Material.Filled.Pause">Pause</MudButton>
+            }
+            <MudButton OnClick="Ant.Next" StartIcon="@Icons.Material.Filled.SkipNext">Step</MudButton>
+            <MudButton OnClick="Ant.Reset" StartIcon="@Icons.Material.Filled.Refresh">Reset</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.subtitle1">Refresh Rate: @((double)_refreshRate/1000) s</MudText>
+        <MudSlider Value="@_refreshRate" ValueChanged="@((int val) => UpdateRefreshRate(val))" Min="1" Max="2000" Step="1" />
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.body1">Steps: @Ant.Steps</MudText>
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+        <div class="grid">
+            @for (int row = 0; row < Ant.SizeX; row++)
+            {
+                @for (int col = 0; col < Ant.SizeY; col++)
                 {
-                    var direction = Ant.AntDirection switch
+                    var x = row;
+                    var y = col;
+                    if (Ant.AntX == x && Ant.AntY == y)
                     {
-                        0 => "ant-up",
-                        1 => "ant-right",
-                        2 => "ant-down",
-                        _ => "ant-left"
-                    };
-                    <div class="cell @direction @(Ant.GetCell(x, y) ? "black" : "white")"></div>
-                }
-                else
-                {
-                    <div class="cell @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                        var direction = Ant.AntDirection switch
+                        {
+                            0 => "ant-up",
+                            1 => "ant-right",
+                            2 => "ant-down",
+                            _ => "ant-left"
+                        };
+                        <div class="cell @direction @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                    }
+                    else
+                    {
+                        <div class="cell @(Ant.GetCell(x, y) ? "black" : "white")"></div>
+                    }
                 }
             }
-        }
-    </div>
+        </div>
+    </MudPaper>
 }
 <style>
     .grid {
@@ -70,51 +74,53 @@ else
         border: 1px solid #ccc;
     }
     .black {
-        background-color: black;
+        background-color: var(--mud-palette-primary);
     }
     .white {
         background-color: white;
     }
     .ant-up {
         border-width: 0 5px 10px 5px;
-        border-color: transparent transparent red transparent;
+        border-color: transparent transparent var(--mud-palette-secondary) transparent;
     }
-
     .ant-right {
         border-width: 5px 0 5px 10px;
-        border-color: transparent transparent transparent red;
+        border-color: transparent transparent transparent var(--mud-palette-secondary);
     }
-
     .ant-down {
         border-width: 10px 5px 0 5px;
-        border-color: red transparent transparent transparent;
+        border-color: var(--mud-palette-secondary) transparent transparent transparent;
     }
-
     .ant-left {
         border-width: 5px 10px 5px 0;
-        border-color: transparent red transparent transparent;
+        border-color: transparent var(--mud-palette-secondary) transparent transparent;
     }
 </style>
 
 @code {
     protected override void OnInitialized()
     {
-        Ant.OnChangeAsync += Refresh;
+        if (Ant != null)
+        {
+            Ant.OnChangeAsync += Refresh;
+        }
     }
 
     private async Task Refresh()
     {
-        await InvokeAsync(StateHasChanged);
+        if (Ant != null)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private int _refreshRate = 100;
 
-    public int RefreshRate
+    private void UpdateRefreshRate(int value)
     {
-        get => _refreshRate;
-        set
+        _refreshRate = value;
+        if (Ant != null)
         {
-            _refreshRate = value;
             Ant.SetRefreshRate(_refreshRate);
         }
     }
