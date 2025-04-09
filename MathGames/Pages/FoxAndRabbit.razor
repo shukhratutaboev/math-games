@@ -1,0 +1,187 @@
+@page "/foxandrabbit"
+@using global::MathGames.Games
+@inject FoxAndRabbitBase Simulation
+
+<MudText Typo="Typo.h4" Class="mb-2">Fox and Rabbit Simulation</MudText>
+
+<MudExpansionPanels Class="mb-4">
+    <MudExpansionPanel Text="About the Fox and Rabbit Simulation">
+        <MudText Typo="Typo.body1" Class="mb-2">
+            The Fox and Rabbit simulation is a predator-prey model showing ecological dynamics in a grid environment. 
+            It illustrates population cycles between predators (foxes) and prey (rabbits) with grass as the food source.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            <strong>Rules:</strong>
+            <ul>
+                <li>Grass grows randomly in empty spaces</li>
+                <li>Rabbits eat grass to gain energy</li>
+                <li>Foxes hunt rabbits to gain energy</li>
+                <li>Both species reproduce when they have enough energy</li>
+                <li>Animals die if they run out of energy</li>
+            </ul>
+        </MudText>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@if (Simulation is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudPaper Class="pa-4 mb-4">
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            @if (Simulation.Paused)
+            {
+                <MudButton OnClick="Simulation.Play" StartIcon="@Icons.Material.Filled.PlayArrow">Play</MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="Simulation.Pause" StartIcon="@Icons.Material.Filled.Pause">Pause</MudButton>
+            }
+            <MudButton OnClick="Simulation.Next" StartIcon="@Icons.Material.Filled.SkipNext">Step</MudButton>
+            <MudButton OnClick="Simulation.Reset" StartIcon="@Icons.Material.Filled.Refresh">Reset</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.subtitle1">Refresh Rate: @((double)_refreshRate/1000) s</MudText>
+        <MudSlider Value="@_refreshRate" ValueChanged="@((int val) => UpdateRefreshRate(val))" Min="100" Max="2000" Step="100" />
+    </MudPaper>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6">Statistics</MudText>
+                <MudText>Steps: @Simulation.Steps</MudText>
+                <MudText Class="mt-2">
+                    <span class="me-2" style="display:inline-block;width:12px;height:12px;background-color:var(--mud-palette-success);"></span>
+                    Grass: @Simulation.GrassCount
+                </MudText>
+                <MudText Class="mt-2">
+                    <span class="me-2" style="display:inline-block;width:12px;height:12px;background-color:var(--mud-palette-info);"></span>
+                    Rabbits: @Simulation.RabbitCount
+                </MudText>
+                <MudText Class="mt-2">
+                    <span class="me-2" style="display:inline-block;width:12px;height:12px;background-color:var(--mud-palette-error);"></span>
+                    Foxes: @Simulation.FoxCount
+                </MudText>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6">Parameters</MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">Grass Growth: @(Math.Round(Simulation.GetGrassGrowthRate() * 100))%</MudText>
+                <MudSlider Value="@(_grassGrowthRate)" ValueChanged="@((double val) => UpdateGrassGrowthRate(val))" Min="1" Max="20" Step="1" />
+                
+                <MudText Typo="Typo.body2" Class="mt-2">Rabbit Breed: @(Math.Round(Simulation.GetRabbitBreedRate() * 100))%</MudText>
+                <MudSlider Value="@(_rabbitBreedRate)" ValueChanged="@((double val) => UpdateRabbitBreedRate(val))" Min="1" Max="20" Step="1" />
+                
+                <MudText Typo="Typo.body2" Class="mt-2">Fox Breed: @(Math.Round(Simulation.GetFoxBreedRate() * 100))%</MudText>
+                <MudSlider Value="@(_foxBreedRate)" ValueChanged="@((double val) => UpdateFoxBreedRate(val))" Min="1" Max="20" Step="1" />
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4">
+        <div class="grid">
+            @for (int row = 0; row < Simulation.SizeX; row++)
+            {
+                @for (int col = 0; col < Simulation.SizeY; col++)
+                {
+                    var x = row;
+                    var y = col;
+                    var cellType = Simulation.GetCell(x, y);
+                    string cellClass = cellType switch
+                    {
+                        1 => "grass",
+                        2 => "rabbit",
+                        3 => "fox",
+                        _ => "empty"
+                    };
+                    <div class="cell @cellClass"></div>
+                }
+            }
+        </div>
+    </MudPaper>
+}
+
+<style>
+    .grid {
+        display: grid;
+        grid-template-rows: repeat(@(Simulation?.SizeX ?? 0), 12px);
+        grid-template-columns: repeat(@(Simulation?.SizeY ?? 0), 12px);
+    }
+    .cell {
+        width: 12px;
+        height: 12px;
+        border: 1px solid #ccc;
+    }
+    .empty { background-color: white; }
+    .grass { background-color: var(--mud-palette-success); }
+    .rabbit { background-color: var(--mud-palette-info); }
+    .fox { background-color: var(--mud-palette-error); }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (Simulation != null)
+        {
+            Simulation.OnChangeAsync += Refresh;
+            _grassGrowthRate = Simulation.GetGrassGrowthRate() * 100;
+            _rabbitBreedRate = Simulation.GetRabbitBreedRate() * 100;
+            _foxBreedRate = Simulation.GetFoxBreedRate() * 100;
+        }
+    }
+
+    private async Task Refresh()
+    {
+        if (Simulation != null)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private int _refreshRate = 500;
+    private double _grassGrowthRate = 5;
+    private double _rabbitBreedRate = 8;
+    private double _foxBreedRate = 5;
+
+    private void UpdateRefreshRate(int value)
+    {
+        _refreshRate = value;
+        if (Simulation != null)
+        {
+            Simulation.SetRefreshRate(_refreshRate);
+        }
+    }
+    
+    private void UpdateGrassGrowthRate(double value)
+    {
+        _grassGrowthRate = value;
+        if (Simulation != null)
+        {
+            Simulation.SetGrassGrowthRate(value / 100);
+        }
+    }
+    
+    private void UpdateRabbitBreedRate(double value)
+    {
+        _rabbitBreedRate = value;
+        if (Simulation != null)
+        {
+            Simulation.SetRabbitBreedRate(value / 100);
+        }
+    }
+    
+    private void UpdateFoxBreedRate(double value)
+    {
+        _foxBreedRate = value;
+        if (Simulation != null)
+        {
+            Simulation.SetFoxBreedRate(value / 100);
+        }
+    }
+}

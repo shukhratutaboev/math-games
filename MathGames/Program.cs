@@ -12,6 +12,7 @@ builder.Services.AddMudServices();
 
 builder.Services.AddScoped<GameOfLifeBase>((ctx) => new GameOfLifeBase(35, 35));
 builder.Services.AddScoped<LangtonsAntBase>((ctx) => new LangtonsAntBase(40, 40));
+builder.Services.AddScoped<FoxAndRabbitBase>((ctx) => new FoxAndRabbitBase(40, 30));
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
