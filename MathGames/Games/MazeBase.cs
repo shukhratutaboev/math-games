@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace MathGames.Games
 {
-    public class MazeBase
+    public class MazeBase : IDisposable
     {
         private readonly object _lock = new object();
         private void NotifyStateChanged() => OnChangeAsync?.Invoke();
@@ -13,6 +13,8 @@ namespace MathGames.Games
         private readonly int _sizeX;
         private readonly int _sizeY;
         private int _refreshRate = 100;
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private bool _disposed = false;
         
         // 0 = wall, 1 = path, 2 = visited (for generation), 
         // 3 = visited (for solving), 4 = solution path, 5 = start, 6 = end
@@ -75,7 +77,7 @@ namespace MathGames.Games
 
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     if (!Paused)
                     {
@@ -89,9 +91,16 @@ namespace MathGames.Games
                         }
                         NotifyStateChanged();
                     }
-                    await Task.Delay(_refreshRate);
+                    try
+                    {
+                        await Task.Delay(_refreshRate, _cancellationTokenSource.Token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
                 }
-            });
+            }, _cancellationTokenSource.Token);
         }
         
         public void SetRefreshRate(int rate)
@@ -839,5 +848,15 @@ namespace MathGames.Games
         }
         
         #endregion
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+        }
     }
 }

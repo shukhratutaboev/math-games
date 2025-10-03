@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace MathGames.Games
 {
-    public class FoxAndRabbitBase
+    public class FoxAndRabbitBase : IDisposable
     {
         private void NotifyStateChanged() => OnChangeAsync?.Invoke();
         public bool Paused { get; set; }
@@ -12,6 +12,8 @@ namespace MathGames.Games
         private readonly int _sizeY;
         private int _refreshRate = 500;
         private int _steps;
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private bool _disposed = false;
         
         // Cell states: 0 = empty, 1 = grass, 2 = rabbit, 3 = fox
         private int[,] _grid;
@@ -29,6 +31,12 @@ namespace MathGames.Games
         // Animal tracking
         private List<Animal> _rabbits = new List<Animal>();
         private List<Animal> _foxes = new List<Animal>();
+        
+        // Statistics history for charting
+        private const int MaxHistorySize = 100;
+        public List<int> GrassHistory { get; private set; } = new List<int>();
+        public List<int> RabbitHistory { get; private set; } = new List<int>();
+        public List<int> FoxHistory { get; private set; } = new List<int>();
 
         public event Func<Task>? OnChangeAsync;
         public int SizeX => _sizeX;
@@ -67,16 +75,23 @@ namespace MathGames.Games
 
             Task.Run(async () =>
             {
-                while (true)
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     if (!Paused)
                     {
                         Step();
                         NotifyStateChanged();
                     }
-                    await Task.Delay(_refreshRate);
+                    try
+                    {
+                        await Task.Delay(_refreshRate, _cancellationTokenSource.Token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
                 }
-            });
+            }, _cancellationTokenSource.Token);
         }
 
         private void InitializeGrid()
@@ -187,10 +202,28 @@ namespace MathGames.Games
             // Move and process foxes
             MoveFoxes();
             
+            // Update statistics history
+            UpdateStatisticsHistory();
+            
             // If all animals die, pause the simulation
             if (_rabbits.Count == 0 && _foxes.Count == 0)
             {
                 Paused = true;
+            }
+        }
+        
+        private void UpdateStatisticsHistory()
+        {
+            GrassHistory.Add(GrassCount);
+            RabbitHistory.Add(_rabbits.Count);
+            FoxHistory.Add(_foxes.Count);
+            
+            // Keep history size limited
+            if (GrassHistory.Count > MaxHistorySize)
+            {
+                GrassHistory.RemoveAt(0);
+                RabbitHistory.RemoveAt(0);
+                FoxHistory.RemoveAt(0);
             }
         }
         
@@ -445,5 +478,15 @@ namespace MathGames.Games
         public double GetGrassGrowthRate() => _grassGrowthRate;
         public double GetRabbitBreedRate() => _rabbitBreedRate;
         public double GetFoxBreedRate() => _foxBreedRate;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+        }
     }
 }

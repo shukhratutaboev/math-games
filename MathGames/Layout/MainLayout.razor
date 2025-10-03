@@ -1,9 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using MathGames.Shared
+@inject ThemeService ThemeService
 
-<MudThemeProvider Theme="MathGamesTheme.DefaultTheme" />
-<MudDialogProvider />
-<MudSnackbarProvider />
 <MudPopoverProvider />
 
 <MudLayout>
@@ -11,7 +9,18 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MathGames</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Inherit" Edge="Edge.End" Href="https://learn.microsoft.com/aspnet/core/" Target="_blank" />
+        <MudTooltip Text="Toggle theme">
+            <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
+                           Color="Color.Inherit" 
+                           OnClick="ToggleTheme" />
+        </MudTooltip>
+        <MudTooltip Text="View on GitHub">
+            <MudIconButton Icon="@Icons.Material.Filled.Info" 
+                           Color="Color.Inherit" 
+                           Edge="Edge.End" 
+                           Href="https://github.com/shukhratutaboev/math-games" 
+                           Target="_blank" />
+        </MudTooltip>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -29,5 +38,11 @@
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    async Task ToggleTheme()
+    {
+        await ThemeService.ToggleThemeAsync();
+        StateHasChanged();
     }
 }

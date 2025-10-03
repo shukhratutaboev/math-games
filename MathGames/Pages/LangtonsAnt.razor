@@ -1,6 +1,7 @@
 @page "/langtonsant"
 @using global::MathGames.Games
 @inject LangtonsAntBase Ant
+@implements IDisposable
 
 <MudText Typo="Typo.h4" Class="mb-2">Langton's Ant</MudText>
 
@@ -162,6 +163,15 @@ else
         if (Ant != null)
         {
             Ant.CreateAntAt(x, y);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (Ant != null)
+        {
+            Ant.OnChangeAsync -= Refresh;
+            Ant.Dispose();
         }
     }
 }

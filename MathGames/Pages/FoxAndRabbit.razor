@@ -1,6 +1,9 @@
 @page "/foxandrabbit"
 @using global::MathGames.Games
+@using ApexCharts
 @inject FoxAndRabbitBase Simulation
+@inject MathGames.Shared.ThemeService ThemeService
+@implements IDisposable
 
 <MudText Typo="Typo.h4" Class="mb-2">Fox and Rabbit Simulation</MudText>
 
@@ -25,12 +28,12 @@
 
 @if (Simulation is null)
 {
-    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
 }
 else
 {
     <MudPaper Class="pa-4 mb-4">
-        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButtonGroup Color="MudBlazor.Color.Primary" Variant="Variant.Outlined">
             @if (Simulation.Paused)
             {
                 <MudButton OnClick="Simulation.Play" StartIcon="@Icons.Material.Filled.PlayArrow">Play</MudButton>
@@ -82,6 +85,49 @@ else
                 <MudSlider Value="@(_foxBreedRate)" ValueChanged="@((double val) => UpdateFoxBreedRate(val))" Min="1" Max="20" Step="1" />
             </MudPaper>
         </MudItem>
+        
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-4">Population History</MudText>
+                @if (_chartOptions != null && Simulation.GrassHistory.Count > 1)
+                {
+                    <ApexChart TItem="PopulationData"
+                               @ref="_chart"
+                               Title="Ecosystem Population Dynamics"
+                               Options="_chartOptions"
+                               Height="300">
+                        
+                        <ApexPointSeries TItem="PopulationData"
+                                         Items="GetGrassData()"
+                                         Name="Grass"
+                                         SeriesType="SeriesType.Line"
+                                         XValue="@(e => e.Step)"
+                                         YAggregate="@(e => e.Sum(x => x.Count))"
+                                         OrderByDescending="e => e.X" />
+                        
+                        <ApexPointSeries TItem="PopulationData"
+                                         Items="GetRabbitData()"
+                                         Name="Rabbits"
+                                         SeriesType="SeriesType.Line"
+                                         XValue="@(e => e.Step)"
+                                         YAggregate="@(e => e.Sum(x => x.Count))"
+                                         OrderByDescending="e => e.X" />
+                        
+                        <ApexPointSeries TItem="PopulationData"
+                                         Items="GetFoxData()"
+                                         Name="Foxes"
+                                         SeriesType="SeriesType.Line"
+                                         XValue="@(e => e.Step)"
+                                         YAggregate="@(e => e.Sum(x => x.Count))"
+                                         OrderByDescending="e => e.X" />
+                    </ApexChart>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">Run the simulation to see population dynamics...</MudText>
+                }
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 
     <MudPaper Class="pa-4">
@@ -125,6 +171,16 @@ else
 </style>
 
 @code {
+    private ApexChartOptions<PopulationData>? _chartOptions;
+    private ApexChart<PopulationData>? _chart;
+    private bool _isDarkMode = false;
+    
+    public class PopulationData
+    {
+        public int Step { get; set; }
+        public int Count { get; set; }
+    }
+    
     protected override void OnInitialized()
     {
         if (Simulation != null)
@@ -134,13 +190,102 @@ else
             _rabbitBreedRate = Simulation.GetRabbitBreedRate() * 100;
             _foxBreedRate = Simulation.GetFoxBreedRate() * 100;
         }
+        if (ThemeService != null)
+        {
+            _isDarkMode = ThemeService.IsDarkMode;
+            ThemeService.ThemeChanged += OnThemeChanged;
+        }
+        InitializeChartOptions();
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        if (ThemeService != null)
+        {
+            _isDarkMode = ThemeService.IsDarkMode;
+            InitializeChartOptions();
+            StateHasChanged();
+        }
+    }
+    
+    private void InitializeChartOptions()
+    {
+        // Цвета для светлой и темной темы
+        var grassColor = _isDarkMode ? "#10b981" : "#06d6a0";
+        var rabbitColor = _isDarkMode ? "#3b82f6" : "#3a86ff";
+        var foxColor = _isDarkMode ? "#ef4444" : "#ef476f";
+        var textColor = _isDarkMode ? "rgba(255,255,255,0.87)" : "rgba(0,0,0,0.87)";
+        var gridColor = _isDarkMode ? "#374151" : "#e0e0e0";
+
+        _chartOptions = new ApexChartOptions<PopulationData>
+        {
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar
+                {
+                    Show = false
+                },
+                Animations = new Animations
+                {
+                    Enabled = true,
+                    DynamicAnimation = new DynamicAnimation
+                    {
+                        Enabled = true,
+                        Speed = 350
+                    }
+                },
+                ForeColor = textColor
+            },
+            Stroke = new Stroke
+            {
+                Curve = Curve.Smooth,
+                Width = 2
+            },
+            Colors = new List<string> { grassColor, rabbitColor, foxColor },
+            Xaxis = new XAxis
+            {
+                Title = new AxisTitle
+                {
+                    Text = "Steps",
+                    Style = new AxisTitleStyle { Color = textColor }
+                }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Title = new AxisTitle
+                    {
+                        Text = "Population",
+                        Style = new AxisTitleStyle { Color = textColor }
+                    }
+                }
+            },
+            Legend = new Legend
+            {
+                Position = LegendPosition.Top
+            },
+            Theme = new Theme
+            {
+                Mode = _isDarkMode ? Mode.Dark : Mode.Light
+            }
+        };
     }
 
     private async Task Refresh()
     {
         if (Simulation != null)
         {
-            await InvokeAsync(StateHasChanged);
+            await InvokeAsync(async () =>
+            {
+                StateHasChanged();
+                
+                // Update chart if it exists and has data
+                if (_chart != null && Simulation.GrassHistory.Count > 0)
+                {
+                    await _chart.UpdateSeriesAsync(true);
+                }
+            });
         }
     }
 
@@ -182,6 +327,61 @@ else
         if (Simulation != null)
         {
             Simulation.SetFoxBreedRate(value / 100);
+        }
+    }
+    
+    private List<PopulationData> GetGrassData()
+    {
+        var data = new List<PopulationData>();
+        for (int i = 0; i < Simulation.GrassHistory.Count; i++)
+        {
+            data.Add(new PopulationData 
+            { 
+                Step = Math.Max(0, Simulation.Steps - Simulation.GrassHistory.Count + i + 1), 
+                Count = Simulation.GrassHistory[i] 
+            });
+        }
+        return data;
+    }
+    
+    private List<PopulationData> GetRabbitData()
+    {
+        var data = new List<PopulationData>();
+        for (int i = 0; i < Simulation.RabbitHistory.Count; i++)
+        {
+            data.Add(new PopulationData 
+            { 
+                Step = Math.Max(0, Simulation.Steps - Simulation.RabbitHistory.Count + i + 1), 
+                Count = Simulation.RabbitHistory[i] 
+            });
+        }
+        return data;
+    }
+    
+    private List<PopulationData> GetFoxData()
+    {
+        var data = new List<PopulationData>();
+        for (int i = 0; i < Simulation.FoxHistory.Count; i++)
+        {
+            data.Add(new PopulationData 
+            { 
+                Step = Math.Max(0, Simulation.Steps - Simulation.FoxHistory.Count + i + 1), 
+                Count = Simulation.FoxHistory[i] 
+            });
+        }
+        return data;
+    }
+
+    public void Dispose()
+    {
+        if (Simulation != null)
+        {
+            Simulation.OnChangeAsync -= Refresh;
+            Simulation.Dispose();
+        }
+        if (ThemeService != null)
+        {
+            ThemeService.ThemeChanged -= OnThemeChanged;
         }
     }
 }

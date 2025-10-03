@@ -1,4 +1,10 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using MathGames.Shared
+
+<MudThemeProvider @ref="_themeProvider" Theme="MathGamesTheme.Theme" IsDarkMode="@_isDarkMode" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -10,3 +16,38 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    private MudThemeProvider? _themeProvider;
+    private bool _isDarkMode = false;
+
+    [Inject]
+    private ThemeService? ThemeService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ThemeService != null)
+        {
+            await ThemeService.InitializeAsync();
+            _isDarkMode = ThemeService.IsDarkMode;
+            ThemeService.ThemeChanged += OnThemeChanged;
+        }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        if (ThemeService != null)
+        {
+            _isDarkMode = ThemeService.IsDarkMode;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (ThemeService != null)
+        {
+            ThemeService.ThemeChanged -= OnThemeChanged;
+        }
+    }
+}

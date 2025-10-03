@@ -1,0 +1,105 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+    <canvas @ref="_canvasRef" 
+            width="@CanvasWidth" 
+            height="@CanvasHeight"
+            @onclick="OnCanvasClick"
+            style="border: 1px solid #ccc; cursor: @(EnableClick ? "pointer" : "default");">
+    </canvas>
+</div>
+
+@code {
+    private ElementReference _canvasRef;
+    private IJSObjectReference? _jsModule;
+
+    [Parameter]
+    public int GridWidth { get; set; } = 50;
+
+    [Parameter]
+    public int GridHeight { get; set; } = 50;
+
+    [Parameter]
+    public int CellSize { get; set; } = 10;
+
+    [Parameter]
+    public bool EnableClick { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<(int x, int y)> OnCellClick { get; set; }
+
+    private int CanvasWidth => GridWidth * CellSize;
+    private int CanvasHeight => GridHeight * CellSize;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/gridCanvas.js");
+            await _jsModule.InvokeVoidAsync("initCanvas", _canvasRef, GridWidth, GridHeight, CellSize);
+        }
+    }
+
+    public async Task RenderGrid(int[,] grid, Dictionary<int, string> colorMap)
+    {
+        if (_jsModule != null)
+        {
+            // Flatten 2D array to 1D for JS
+            var flatGrid = new int[GridWidth * GridHeight];
+            for (int y = 0; y < GridHeight; y++)
+            {
+                for (int x = 0; x < GridWidth; x++)
+                {
+                    flatGrid[y * GridWidth + x] = grid[x, y];
+                }
+            }
+
+            await _jsModule.InvokeVoidAsync("renderGrid", _canvasRef, flatGrid, colorMap, GridWidth, GridHeight, CellSize);
+        }
+    }
+
+    public async Task RenderBoolGrid(bool[,] grid, string aliveColor, string deadColor)
+    {
+        if (_jsModule != null)
+        {
+            // Flatten 2D bool array to 1D int array
+            var flatGrid = new int[GridWidth * GridHeight];
+            for (int y = 0; y < GridHeight; y++)
+            {
+                for (int x = 0; x < GridWidth; x++)
+                {
+                    flatGrid[y * GridWidth + x] = grid[x, y] ? 1 : 0;
+                }
+            }
+
+            var colorMap = new Dictionary<int, string>
+            {
+                { 0, deadColor },
+                { 1, aliveColor }
+            };
+
+            await _jsModule.InvokeVoidAsync("renderGrid", _canvasRef, flatGrid, colorMap, GridWidth, GridHeight, CellSize);
+        }
+    }
+
+    private async Task OnCanvasClick(MouseEventArgs e)
+    {
+        if (EnableClick && OnCellClick.HasDelegate && _jsModule != null)
+        {
+            var result = await _jsModule.InvokeAsync<int[]>("getCellFromClick", _canvasRef, e.OffsetX, e.OffsetY, CellSize);
+            if (result != null && result.Length == 2)
+            {
+                await OnCellClick.InvokeAsync((result[0], result[1]));
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.DisposeAsync();
+        }
+    }
+}

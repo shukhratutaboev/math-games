@@ -1,6 +1,6 @@
 namespace MathGames.Games;
 
-public class LangtonsAntBase
+public class LangtonsAntBase : IDisposable
 {
     private void NotifyStateChanged() => OnChangeAsync?.Invoke();
     public bool Paused { get; set; }
@@ -9,6 +9,8 @@ public class LangtonsAntBase
     private int _refreshRate = 100;
     private bool[,] _cells;
     private int _steps;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private bool _disposed = false;
 
     // List to store multiple ants
     private List<Ant> _ants = new List<Ant>();
@@ -56,16 +58,23 @@ public class LangtonsAntBase
 
         Task.Run(async () =>
         {
-            while (true)
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
                 if (!Paused)
                 {
                     Step();
                     NotifyStateChanged();
                 }
-                await Task.Delay(_refreshRate);
+                try
+                {
+                    await Task.Delay(_refreshRate, _cancellationTokenSource.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
             }
-        });
+        }, _cancellationTokenSource.Token);
     }
 
     public void Play()
@@ -182,5 +191,15 @@ public class LangtonsAntBase
         {
             Paused = true;
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
     }
 }

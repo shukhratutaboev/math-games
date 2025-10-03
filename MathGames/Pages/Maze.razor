@@ -1,6 +1,7 @@
 @page "/maze"
 @using global::MathGames.Games
 @inject MazeBase MazeGen
+@implements IDisposable
 
 <MudText Typo="Typo.h4" Class="mb-2">Maze Generator & Solver</MudText>
 
@@ -220,6 +221,15 @@ else
             {
                 MazeGen.SetEndPoint(x, y);
             }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (MazeGen != null)
+        {
+            MazeGen.OnChangeAsync -= Refresh;
+            MazeGen.Dispose();
         }
     }
 }
