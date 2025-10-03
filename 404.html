@@ -16,11 +16,10 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="custom-loader">
+            <div class="mud-skeleton mud-skeleton-circle" style="width:64px;height:64px;margin:auto;"></div>
+            <div class="mud-skeleton mud-skeleton-text" style="width:120px;height:24px;margin:16px auto 0 auto;"></div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -28,6 +27,30 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <style>
+        .custom-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .mud-skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.2s infinite linear;
+        }
+        .mud-skeleton-circle {
+            border-radius: 50%;
+        }
+        .mud-skeleton-text {
+            border-radius: 4px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
