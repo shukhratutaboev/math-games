@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MathGames",
   "resources": {
-    "hash": "sha256-syg2v7fTI9snjBB8/La1iyFj/mFcq3qrAM6boWvw3XQ=",
+    "hash": "sha256-y9VB2tO1N6rk1rGQlwuzmjSpU9/iBxncMOKqXHAep1E=",
     "jsModuleNative": {
       "dotnet.native.8.0.29.yfm49immel.js": "sha256-JTswf4CBcNmmrTGm6DppxYNII8GVEmbA3iXD3bU1fcA="
     },
@@ -18,9 +18,9 @@
     },
     "assembly": {
       "Blazor-ApexCharts.wasm": "sha256-jxtFNFwhlIzGfVEtCFIN3JjveG8hxWUgdCZ8Eg4WU1M=",
-      "MathGames.wasm": "sha256-6QPb7BU1yY+Y0K4kZBL1jqkQP9boFujZAlfOs6FdjAc=",
+      "MathGames.wasm": "sha256-ZWthFIQE1NiC0JzNBo/joDAksNThlfmoh++RMOvq4gw=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-yLVXC2290ExXek78AbECPeg4asvhZ5zYQkcU4iflbb8=",
-      "Microsoft.AspNetCore.Components.wasm": "sha256-3Ig0Md2Yv7yYye8q4zB2VvpOeHR1IjMYlZefDWAR29E=",
+      "Microsoft.AspNetCore.Components.wasm": "sha256-E6QN5Yz5zjTYUU2aTTEj2j3w+DpFIX1T8/WarKOxsEE=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-PEV35jjBNgSHiZgco7dyeh6o7zK7AUWAOpNFZdzD+Vs=",
       "Microsoft.AspNetCore.Components.WebAssembly.wasm": "sha256-lNGM8U86jh/dNy7rfQygCKvYPEVxcvRRhVwtIkTbwKQ=",
       "Microsoft.Extensions.Configuration.Abstractions.wasm": "sha256-87sn2TYqgdZ95sXmavjKEzoEfMgHnYQ9LOvnMX+aZcI=",
@@ -39,7 +39,7 @@
       "Microsoft.Extensions.Primitives.wasm": "sha256-Ms2HR5Gpug/0uRAzdk4SUNT76Ml3CjFv9Jo+dUIMGac=",
       "Microsoft.JSInterop.wasm": "sha256-AdyB/1uJwWwweGhptfwOCDiogbYpHMMhSq6pPwUKNSU=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-CQVLCKiSxLN5ghyJZG3mhnMGRROdqrbNUjtAXB0nWb8=",
-      "MudBlazor.wasm": "sha256-po5RlKUczd4pijzOMISyZvvXEpcD3lVY6eueH77Qc6k=",
+      "MudBlazor.wasm": "sha256-MyqrnszJNCxf9TaZp9SbMwdHtn6pa3LWJzw6mjSZC98=",
       "System.Collections.Concurrent.wasm": "sha256-sGWq/w2mlVlAamM3dpbTG+u3fJsz5YtWj49Q/kh5RFc=",
       "System.Collections.Immutable.wasm": "sha256-yir6+dfAi6j+vrCpPfOLjYfwAt9XirPAKrWA4s0Qn3U=",
       "System.Collections.wasm": "sha256-jvCTyX5gFWdk+KTbDmCqhtbMr+/p+d0gkNQWTMGkaoM=",
