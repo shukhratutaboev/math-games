@@ -4,13 +4,10 @@
 
 <MudPopoverProvider />
 
-<MudLayout Class="app-layout">
-    <MudAppBar Elevation="0" Class="app-header">
+<MudLayout>
+    <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <div class="brand-wrap">
-            <MudText Typo="Typo.h5" Class="brand-title">Math Games Lab</MudText>
-            <MudText Typo="Typo.caption" Class="brand-subtitle">Interactive simulations</MudText>
-        </div>
+        <MudText Typo="Typo.h5" Class="ml-3">MathGames</MudText>
         <MudSpacer />
         <MudTooltip Text="Toggle theme">
             <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
@@ -18,18 +15,18 @@
                            OnClick="ToggleTheme" />
         </MudTooltip>
         <MudTooltip Text="View on GitHub">
-            <MudIconButton Icon="@Icons.Material.Filled.Code" 
+            <MudIconButton Icon="@Icons.Material.Filled.Info" 
                            Color="Color.Inherit" 
                            Edge="Edge.End" 
                            Href="https://github.com/shukhratutaboev/math-games" 
                            Target="_blank" />
         </MudTooltip>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Class="app-drawer">
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 pt-4 content-shell">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 pt-4">
             @Body
         </MudContainer>
     </MudMainContent>
